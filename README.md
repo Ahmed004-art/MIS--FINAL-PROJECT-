@@ -1,4 +1,4 @@
-# SLeClear MIS
+# SL CLEARANCE
 **Sierra Leone Student Clearance & Financial Management Information System**
 A web-based prototype for university financial compliance and decision support.
 

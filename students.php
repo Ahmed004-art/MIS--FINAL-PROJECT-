@@ -1,4 +1,13 @@
 <?php
+require_once __DIR__ . '/includes/auth.php';
+requireLogin();
+
+$me = currentUser();
+if (($me['role'] ?? '') === 'Student') {
+    header('Location: student_dashboard.php');
+    exit;
+}
+
 $title = 'Students';
 $subtitle = 'Manage student records and view balances';
 require_once __DIR__ . '/includes/header.php';
@@ -31,6 +40,7 @@ $faculties = db()->query("SELECT DISTINCT faculty FROM students WHERE faculty<>'
             <?php endif; ?>
         </form>
     </div>
+    <div class="table-scroll">
     <table>
         <thead><tr><th>Student ID</th><th>Name</th><th>Program</th><th>Total Fees</th><th>Paid</th><th>Balance</th><th>Clearance</th><th></th></tr></thead>
         <tbody>
@@ -53,5 +63,6 @@ $faculties = db()->query("SELECT DISTINCT faculty FROM students WHERE faculty<>'
         <?php endforeach; if(!$students): ?><tr><td colspan="8" style="text-align:center;padding:30px;color:var(--muted)">No students found.</td></tr><?php endif; ?>
         </tbody>
     </table>
+    </div>
 </div>
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

@@ -21,20 +21,34 @@ if ($_SERVER['REQUEST_METHOD']==='POST') {
     $full = trim($_POST['full_name']);
     $role = $_POST['role'];
     $pass = $_POST['password'] ?? '';
-    if ($id) {
-        if ($pass !== '') {
-            db()->prepare('UPDATE users SET username=?,full_name=?,role=?,password_hash=? WHERE id=?')
-                ->execute([$username,$full,$role,password_hash($pass, PASSWORD_DEFAULT),$id]);
+    try {
+        if ($id) {
+            if ($pass !== '') {
+                db()->prepare('UPDATE users SET username=?,full_name=?,role=?,password_hash=? WHERE id=?')
+                    ->execute([$username,$full,$role,password_hash($pass, PASSWORD_DEFAULT),$id]);
+            } else {
+                db()->prepare('UPDATE users SET username=?,full_name=?,role=? WHERE id=?')->execute([$username,$full,$role,$id]);
+            }
+            logAction('update_user',"#$id"); flash('User updated','success');
         } else {
-            db()->prepare('UPDATE users SET username=?,full_name=?,role=? WHERE id=?')->execute([$username,$full,$role,$id]);
+            db()->prepare('INSERT INTO users(username,password_hash,full_name,role) VALUES(?,?,?,?)')
+                ->execute([$username, password_hash($pass ?: 'changeme', PASSWORD_DEFAULT), $full, $role]);
+            logAction('create_user', $username); flash('User created','success');
         }
-        logAction('update_user',"#$id"); flash('User updated','success');
-    } else {
-        db()->prepare('INSERT INTO users(username,password_hash,full_name,role) VALUES(?,?,?,?)')
-            ->execute([$username, password_hash($pass ?: 'changeme', PASSWORD_DEFAULT), $full, $role]);
-        logAction('create_user', $username); flash('User created','success');
+        header('Location: users.php'); exit;
+    } catch (PDOException $e) {
+        if ($e->getCode() == 23000 || strpos($e->getMessage(), 'UNIQUE') !== false) {
+            flash('Error: Username already exists.', 'error');
+        } else {
+            flash('Error: ' . $e->getMessage(), 'error');
+        }
+        $user = [
+            'id' => $id,
+            'username' => $username,
+            'full_name' => $full,
+            'role' => $role
+        ];
     }
-    header('Location: users.php'); exit;
 }
 
 $title = $id ? 'Edit User' : 'Add User';

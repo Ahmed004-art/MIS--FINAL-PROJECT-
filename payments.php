@@ -16,11 +16,16 @@ $sql .= " ORDER BY p.id DESC";
 $stmt = db()->prepare($sql); $stmt->execute($args);
 $rows = $stmt->fetchAll();
 $total = array_sum(array_column($rows,'amount'));
+
+$today = date('Y-m-d');
+$stmtToday = db()->prepare("SELECT COALESCE(SUM(amount),0) FROM payments WHERE paid_on = ?");
+$stmtToday->execute([$today]);
+$todayCollected = (float)$stmtToday->fetchColumn();
 ?>
 <div class="grid grid-3" style="margin-bottom:18px">
     <div class="stat"><div class="stat-label">Total Transactions</div><div class="stat-value"><?= count($rows) ?></div></div>
     <div class="stat accent"><div class="stat-label">Total Collected</div><div class="stat-value"><?= money($total) ?></div></div>
-    <div class="stat warn"><div class="stat-label">Today</div><div class="stat-value"><?= money((float)db()->query("SELECT COALESCE(SUM(amount),0) FROM payments WHERE paid_on=date('now')")->fetchColumn()) ?></div></div>
+    <div class="stat warn"><div class="stat-label">Today</div><div class="stat-value"><?= money($todayCollected) ?></div></div>
 </div>
 <div class="table-wrap">
     <div class="table-header">
@@ -32,6 +37,7 @@ $total = array_sum(array_column($rows,'amount'));
             <a class="btn btn-secondary btn-sm" href="export.php?type=payments">⬇ CSV</a>
         </form>
     </div>
+    <div class="table-scroll">
     <table>
         <thead><tr><th>Date</th><th>Student</th><th>Amount</th><th>Method</th><th>Reference</th><th>Officer</th><th>Notes</th></tr></thead>
         <tbody>
@@ -39,14 +45,15 @@ $total = array_sum(array_column($rows,'amount'));
             <tr>
                 <td><?= e($r['paid_on']) ?></td>
                 <td><strong><?= e($r['full_name']) ?></strong><br><small style="color:var(--muted)"><?= e($r['sid']) ?></small></td>
-                <td><strong><?= money((float)$r['amount']) ?></strong></td>
+                <td><strong style="color:var(--primary)"><?= money((float)$r['amount']) ?></strong></td>
                 <td><?= e($r['method']) ?></td>
                 <td><code><?= e($r['reference']) ?></code></td>
                 <td><?= e($r['officer']) ?></td>
                 <td style="color:var(--muted)"><?= e($r['notes']) ?></td>
             </tr>
-        <?php endforeach; if(!$rows): ?><tr><td colspan="7" style="text-align:center;padding:30px;color:var(--muted)">No payments recorded.</td></tr><?php endif; ?>
+        <?php endforeach; if(!$rows): ?><tr><td colspan="7" style="text-align:center;padding:36px;color:var(--muted)">No payments recorded.</td></tr><?php endif; ?>
         </tbody>
     </table>
+    </div>
 </div>
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

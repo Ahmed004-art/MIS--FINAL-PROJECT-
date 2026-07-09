@@ -1,4 +1,13 @@
 <?php
+require_once __DIR__ . '/includes/auth.php';
+requireLogin();
+
+$me = currentUser();
+if (($me['role'] ?? '') === 'Student') {
+    header('Location: student_dashboard.php');
+    exit;
+}
+
 $title = 'Reports';
 $subtitle = 'Management reports and data exports';
 require_once __DIR__ . '/includes/header.php';
@@ -17,19 +26,23 @@ $overdue = array_slice($overdue, 0, 10);
 <div class="grid grid-2">
     <div class="card">
         <h3>Students by Faculty</h3>
+        <div class="table-scroll">
         <table><thead><tr><th>Faculty</th><th>Students</th><th>Total Fees</th></tr></thead><tbody>
         <?php foreach($byFaculty as $f): ?>
         <tr><td><?= e($f['faculty']) ?: '—' ?></td><td><?= $f['n'] ?></td><td><?= money((float)$f['fees']) ?></td></tr>
         <?php endforeach; ?>
         </tbody></table>
+        </div>
     </div>
     <div class="card">
         <h3>Payments by Method</h3>
+        <div class="table-scroll">
         <table><thead><tr><th>Method</th><th>Count</th><th>Amount</th></tr></thead><tbody>
         <?php foreach($byMethod as $m): ?>
         <tr><td><?= e($m['method']) ?></td><td><?= $m['n'] ?></td><td><?= money((float)$m['amt']) ?></td></tr>
         <?php endforeach; if(!$byMethod): ?><tr><td colspan="3" style="color:var(--muted)">No data</td></tr><?php endif; ?>
         </tbody></table>
+        </div>
     </div>
 </div>
 
@@ -42,6 +55,7 @@ $overdue = array_slice($overdue, 0, 10);
             <a class="btn btn-secondary btn-sm" href="export.php?type=clearances">⬇ Clearances CSV</a>
         </div>
     </div>
+    <div class="table-scroll">
     <table>
         <thead><tr><th>Student ID</th><th>Name</th><th>Total Fees</th><th>Paid</th><th>Balance</th><th>Status</th></tr></thead>
         <tbody>
@@ -57,5 +71,6 @@ $overdue = array_slice($overdue, 0, 10);
         <?php endforeach; if(!$overdue): ?><tr><td colspan="6" style="text-align:center;padding:24px;color:var(--success)">🎉 No overdue balances!</td></tr><?php endif; ?>
         </tbody>
     </table>
+    </div>
 </div>
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

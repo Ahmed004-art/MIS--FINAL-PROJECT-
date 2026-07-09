@@ -4,7 +4,7 @@ requireLogin();
 require_once __DIR__ . '/includes/functions.php';
 
 $type = $_GET['type'] ?? 'students';
-$filename = "sleclear-$type-" . date('Ymd-His') . '.csv';
+$filename = "limkokwing-$type-" . date('Ymd-His') . '.csv';
 header('Content-Type: text/csv; charset=utf-8');
 header("Content-Disposition: attachment; filename=$filename");
 $out = fopen('php://output','w');

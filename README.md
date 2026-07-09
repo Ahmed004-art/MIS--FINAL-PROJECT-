@@ -1,4 +1,4 @@
-# SL CLEARANCE
+# Limkokwing Financial System
 **Sierra Leone Student Clearance & Financial Management Information System**
 A web-based prototype for university financial compliance and decision support.
 
@@ -14,7 +14,7 @@ License: **MIT** (open source) — see [`LICENSE`](LICENSE).
 
 Universities in Sierra Leone enforce the **"No Slip = No Exam"** policy. Tracking
 fees, clearances, and deferred assessments manually causes delays and errors.
-SLeClear MIS automates all of it:
+Limkokwing Financial System automates all of it:
 
 - **Students** – register, edit, search, filter by faculty
 - **Payments** – record transactions (Cash, Bank, Mobile Money, Cheque, Card)

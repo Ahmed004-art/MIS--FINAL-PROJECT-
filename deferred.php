@@ -1,4 +1,13 @@
 <?php
+require_once __DIR__ . '/includes/auth.php';
+requireLogin();
+
+$me = currentUser();
+if (($me['role'] ?? '') === 'Student') {
+    header('Location: student_dashboard.php');
+    exit;
+}
+
 $title = 'Deferred Assessments';
 $subtitle = 'Submit and approve deferred exam applications';
 require_once __DIR__ . '/includes/header.php';
@@ -26,6 +35,7 @@ $rows = db()->query("SELECT d.*, s.full_name, s.student_id AS sid, u.full_name A
 </div>
 <div class="table-wrap">
     <div class="table-header"><h2><?= count($rows) ?> Applications</h2></div>
+    <div class="table-scroll">
     <table>
         <thead><tr><th>Submitted</th><th>Student</th><th>Course</th><th>Reason</th><th>Fee</th><th>Status</th><th>Action</th></tr></thead>
         <tbody>
@@ -53,5 +63,6 @@ $rows = db()->query("SELECT d.*, s.full_name, s.student_id AS sid, u.full_name A
         <?php endforeach; if(!$rows): ?><tr><td colspan="7" style="text-align:center;padding:30px;color:var(--muted)">No applications yet.</td></tr><?php endif; ?>
         </tbody>
     </table>
+    </div>
 </div>
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

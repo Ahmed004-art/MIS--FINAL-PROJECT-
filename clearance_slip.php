@@ -1,12 +1,36 @@
 <?php
-$title = 'Clearance Slip';
-$subtitle = 'Printable financial clearance certificate';
-require_once __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/includes/auth.php';
+requireLogin();
 
 $id = (int)($_GET['id'] ?? 0);
 $stmt = db()->prepare("SELECT c.*, s.student_id AS sid, s.full_name, s.program, s.faculty, s.level, s.semester, u.full_name AS officer FROM clearances c JOIN students s ON s.id=c.student_id LEFT JOIN users u ON u.id=c.issued_by WHERE c.id=?");
 $stmt->execute([$id]); $c = $stmt->fetch();
-if (!$c) { echo '<div class="card">Slip not found.</div>'; require __DIR__ . '/includes/footer.php'; exit; }
+
+if (!$c) {
+    $title = 'Clearance Slip';
+    $subtitle = 'Printable financial clearance certificate';
+    require_once __DIR__ . '/includes/header.php';
+    echo '<div class="card">Slip not found.</div>';
+    require_once __DIR__ . '/includes/footer.php';
+    exit;
+}
+
+// Ownership verification for student role
+$me = currentUser();
+if (($me['role'] ?? '') === 'Student' && $me['username'] !== $c['sid']) {
+    $title = 'Access Denied';
+    require_once __DIR__ . '/includes/header.php';
+    echo '<div class="card" style="text-align:center;padding:40px;color:var(--danger)">';
+    echo '<h3>403 Forbidden</h3>';
+    echo '<p style="margin-top:10px">You are not authorized to view this clearance slip.</p>';
+    echo '</div>';
+    require_once __DIR__ . '/includes/footer.php';
+    exit;
+}
+
+$title = 'Clearance Slip';
+$subtitle = 'Printable financial clearance certificate';
+require_once __DIR__ . '/includes/header.php';
 $b = studentBalance((int)$c['student_id']);
 $ref = 'SLC-' . str_pad((string)$c['id'], 6, '0', STR_PAD_LEFT) . '-' . date('Y');
 ?>
@@ -34,7 +58,7 @@ $ref = 'SLC-' . str_pad((string)$c['id'], 6, '0', STR_PAD_LEFT) . '-' . date('Y'
         <div><span>Outstanding Balance</span><strong style="color:<?= $b['balance']>0?'var(--danger)':'var(--success)' ?>"><?= money($b['balance']) ?></strong></div>
         <div><span>Issued By</span><strong><?= e($c['officer']) ?></strong></div>
     </div>
-    <div class="slip-stamp"><?= strtoupper($c['status']) ?> CLEARANCE — <?= e($b['percent']) ?>% PAID</div>
+    <div class="slip-stamp slip-stamp-<?= strtolower($c['status']) ?>"><?= strtoupper($c['status']) ?> CLEARANCE — <?= e($b['percent']) ?>% PAID</div>
     <p style="margin-top:20px;font-size:12px;color:var(--muted);text-align:center">
         This document is a system-generated financial clearance certificate. Verify authenticity with the Finance Office quoting the reference above.
     </p>

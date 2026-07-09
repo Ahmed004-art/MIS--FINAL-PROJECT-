@@ -1,4 +1,4 @@
--- SLeClear MIS – Database Schema (SQLite)
+-- Limkokwing Financial System – Database Schema (SQLite)
 -- Tables are auto-created on first run by includes/db.php; this file
 -- is provided for documentation / portability to MySQL/MariaDB.
 
@@ -7,7 +7,7 @@ CREATE TABLE users (
     username TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
     full_name TEXT NOT NULL,
-    role TEXT NOT NULL CHECK(role IN ('Admin','Finance','Registry')),
+    role TEXT NOT NULL CHECK(role IN ('Admin','Finance','Registry','Student')),
     created_at TEXT DEFAULT (datetime('now'))
 );
 

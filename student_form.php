@@ -12,35 +12,61 @@ if ($id) {
 
 if ($_SERVER['REQUEST_METHOD']==='POST') {
     verifyCsrf();
-    if ($_POST['_action'] ?? '' === 'delete') {
+    if (($_POST['_action'] ?? '') === 'delete') {
         db()->prepare('DELETE FROM students WHERE id=?')->execute([$id]);
         logAction('delete_student',"#$id");
         flash('Student deleted.','success');
         header('Location: students.php'); exit;
     }
-    $data = [
-        trim($_POST['student_id']),
-        trim($_POST['full_name']),
-        $_POST['gender'] ?? '',
-        trim($_POST['email']),
-        trim($_POST['phone']),
-        trim($_POST['program']),
-        trim($_POST['faculty']),
-        trim($_POST['level']),
-        trim($_POST['semester']),
-        (float)$_POST['total_fees'],
-    ];
-    if ($id) {
-        $data[] = $id;
-        db()->prepare('UPDATE students SET student_id=?,full_name=?,gender=?,email=?,phone=?,program=?,faculty=?,level=?,semester=?,total_fees=? WHERE id=?')->execute($data);
-        logAction('update_student',"#$id");
-        flash('Student updated.','success');
-    } else {
-        db()->prepare('INSERT INTO students(student_id,full_name,gender,email,phone,program,faculty,level,semester,total_fees) VALUES(?,?,?,?,?,?,?,?,?,?)')->execute($data);
-        logAction('create_student',$data[0]);
-        flash('Student added.','success');
+    $student_id = trim($_POST['student_id']);
+    $full_name = trim($_POST['full_name']);
+    $gender = $_POST['gender'] ?? '';
+    $email = trim($_POST['email']);
+    $phone = trim($_POST['phone']);
+    $program = trim($_POST['program']);
+    $faculty = trim($_POST['faculty']);
+    $level = trim($_POST['level']);
+    $semester = trim($_POST['semester']);
+    $total_fees = (float)$_POST['total_fees'];
+
+    try {
+        if (!preg_match('/^90500\d{4}$/', $student_id)) {
+            throw new Exception('Student ID must start with 90500 followed by exactly 4 digits (e.g. 905001234).');
+        }
+
+        $data = [$student_id, $full_name, $gender, $email, $phone, $program, $faculty, $level, $semester, $total_fees];
+
+        if ($id) {
+            $data[] = $id;
+            db()->prepare('UPDATE students SET student_id=?,full_name=?,gender=?,email=?,phone=?,program=?,faculty=?,level=?,semester=?,total_fees=? WHERE id=?')->execute($data);
+            logAction('update_student',"#$id");
+            flash('Student updated.','success');
+        } else {
+            db()->prepare('INSERT INTO students(student_id,full_name,gender,email,phone,program,faculty,level,semester,total_fees) VALUES(?,?,?,?,?,?,?,?,?,?)')->execute($data);
+            logAction('create_student',$data[0]);
+            flash('Student added.','success');
+        }
+        header('Location: students.php'); exit;
+    } catch (PDOException $e) {
+        if ($e->getCode() == 23000 || strpos($e->getMessage(), 'UNIQUE') !== false) {
+            flash('Error: Student ID already exists.', 'error');
+        } else {
+            flash('Error: ' . $e->getMessage(), 'error');
+        }
+        $student = [
+            'id' => $id,
+            'student_id' => $student_id,
+            'full_name' => $full_name,
+            'gender' => $gender,
+            'email' => $email,
+            'phone' => $phone,
+            'program' => $program,
+            'faculty' => $faculty,
+            'level' => $level,
+            'semester' => $semester,
+            'total_fees' => $total_fees
+        ];
     }
-    header('Location: students.php'); exit;
 }
 
 $title = $id ? 'Edit Student' : 'Add Student';
@@ -50,7 +76,7 @@ require_once __DIR__ . '/includes/header.php';
 <form method="post" class="card" style="max-width:900px">
     <input type="hidden" name="csrf" value="<?= csrfToken() ?>">
     <div class="form-grid">
-        <div><label>Student ID *</label><input name="student_id" required value="<?= e($student['student_id']) ?>" placeholder="LU/2024/123"></div>
+        <div><label>Student ID *</label><input name="student_id" required value="<?= e($student['student_id']) ?>" placeholder="e.g. 905001234"></div>
         <div><label>Full Name *</label><input name="full_name" required value="<?= e($student['full_name']) ?>"></div>
         <div><label>Gender</label>
             <select name="gender">

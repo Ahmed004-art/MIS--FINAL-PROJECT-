@@ -1,4 +1,13 @@
 <?php
+require_once __DIR__ . '/includes/auth.php';
+requireLogin();
+
+$me = currentUser();
+if (($me['role'] ?? '') === 'Student') {
+    header('Location: student_dashboard.php');
+    exit;
+}
+
 $title = 'Clearance';
 $subtitle = 'Check clearance status and generate slips';
 require_once __DIR__ . '/includes/header.php';
@@ -66,6 +75,7 @@ if ($_SERVER['REQUEST_METHOD']==='POST' && $student) {
 <?php if ($history): ?>
 <div class="table-wrap" style="margin-top:18px">
     <div class="table-header"><h2>Clearance History</h2></div>
+    <div class="table-scroll">
     <table>
         <thead><tr><th>Date</th><th>Status</th><th>Purpose</th><th>Issued By</th><th></th></tr></thead>
         <tbody>
@@ -80,6 +90,7 @@ if ($_SERVER['REQUEST_METHOD']==='POST' && $student) {
         <?php endforeach; ?>
         </tbody>
     </table>
+    </div>
 </div>
 <?php endif; ?>
 

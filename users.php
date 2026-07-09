@@ -11,6 +11,7 @@ $rows = db()->query('SELECT * FROM users ORDER BY role, username')->fetchAll();
         <h2><?= count($rows) ?> Users</h2>
         <a class="btn btn-sm" href="user_form.php">+ Add User</a>
     </div>
+    <div class="table-scroll">
     <table>
         <thead><tr><th>Username</th><th>Full Name</th><th>Role</th><th>Created</th><th></th></tr></thead>
         <tbody>
@@ -25,5 +26,6 @@ $rows = db()->query('SELECT * FROM users ORDER BY role, username')->fetchAll();
         <?php endforeach; ?>
         </tbody>
     </table>
+    </div>
 </div>
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
